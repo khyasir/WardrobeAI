@@ -1,6 +1,6 @@
 # WardrobeAI
 
-**Live app:** _publishing — link added below after the artifact is published_
+**Live app:** https://claude.ai/artifact/NxSHFTCDfSS4bKgN1G4Ufp (open while signed in to claude.ai)
 
 A personal AI stylist that knows your real closet and helps you dress well for the office in Saudi Arabia: western business clothes during the week, Pakistani wear for Fridays, weekends and events.
 

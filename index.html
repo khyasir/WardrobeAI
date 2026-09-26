@@ -1,0 +1,883 @@
+<title>WardrobeAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F2F3EF;
+  --weave:rgba(31,77,58,.035);
+  --surface:#FBFBF8;
+  --surface-2:#E8EBE4;
+  --ink:#18201C;
+  --ink-2:#4A554F;
+  --ink-3:#77817B;
+  --line:#D6DAD2;
+  --accent:#1F4D3A;
+  --accent-ink:#F6F7F2;
+  --accent-soft:#DCE7DF;
+  --brass:#9A7A43;
+  --good:#2E6B45;
+  --warn:#9A6414;
+  --bad:#A23B2C;
+  --shadow:0 1px 2px rgba(24,32,28,.06),0 8px 24px rgba(24,32,28,.08);
+  --f-display:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r:10px;
+  --bar-h:64px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#111513;--weave:rgba(160,200,180,.03);--surface:#1A1F1C;--surface-2:#232A26;
+    --ink:#E9ECE6;--ink-2:#B3BCB6;--ink-3:#85908A;--line:#2F3833;
+    --accent:#7DB597;--accent-ink:#0F1A14;--accent-soft:#223B2E;--brass:#C9A66B;
+    --good:#7CC195;--warn:#E0A64E;--bad:#E4806F;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111513;--weave:rgba(160,200,180,.03);--surface:#1A1F1C;--surface-2:#232A26;
+  --ink:#E9ECE6;--ink-2:#B3BCB6;--ink-3:#85908A;--line:#2F3833;
+  --accent:#7DB597;--accent-ink:#0F1A14;--accent-soft:#223B2E;--brass:#C9A66B;
+  --good:#7CC195;--warn:#E0A64E;--bad:#E4806F;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  background-color:var(--bg);
+  background-image:
+    repeating-linear-gradient(0deg,var(--weave) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(90deg,var(--weave) 0 1px,transparent 1px 3px);
+  color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:0 calc(var(--bar-h) + 32px + env(safe-area-inset-bottom,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{text-wrap:balance;margin:0}
+p{margin:0}
+
+/* header */
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-block:20px 12px}
+.brand{font-family:var(--f-display);font-weight:600;font-size:26px;letter-spacing:.01em}
+.brand em{font-style:normal;color:var(--accent)}
+.label{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+.page-h{display:flex;flex-direction:column;gap:4px;padding-block:8px 16px}
+.page-h h1{font-family:var(--f-display);font-weight:500;font-size:30px;line-height:1.15}
+.page-h p{color:var(--ink-2)}
+
+/* buttons */
+.btn{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:var(--surface);display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.ghost{background:transparent}
+.btn.block{width:100%}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn svg{width:18px;height:18px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.end{justify-content:flex-end}
+.link{background:none;border:0;padding:0;color:var(--accent);font-weight:600;text-decoration:underline;text-underline-offset:3px;min-height:44px}
+
+/* chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding-block:2px 6px;margin-inline:-16px;padding-inline:16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips.wrap-ok{flex-wrap:wrap;overflow:visible;margin-inline:0;padding-inline:0}
+.chip{flex:none;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:14px;font-weight:500;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+
+/* closet */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:6px 12px}
+.count{font-family:var(--f-mono);font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (min-width:480px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.card{position:relative;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;text-align:left;padding:0}
+.card .ph{aspect-ratio:4/5;width:100%;max-width:100%;background:var(--surface-2);object-fit:cover;display:block}
+.card .meta{display:flex;flex-direction:column;gap:2px;padding:8px 10px 10px}
+.card .cat{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.card .desc{font-size:13.5px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tagx{position:absolute;top:8px;left:8px;font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;background:var(--brass);color:#fff;padding:3px 7px;border-radius:4px}
+.notice{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.notice h2{font-family:var(--f-display);font-weight:500;font-size:22px}
+.notice p{color:var(--ink-2)}
+.notice.slim{padding:12px 14px;flex-direction:row;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.notice.slim p{font-size:14px}
+.stack{display:flex;flex-direction:column;gap:16px}
+
+/* ticket (tag list) */
+.ticket{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:15px}
+.ticket dt{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);padding-top:3px}
+.ticket dd{margin:0}
+
+/* forms */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.field input,.field select,.field textarea{min-height:44px;width:100%;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:10px 12px;font-size:16px}
+.field textarea{min-height:72px;resize:vertical}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fgrid .full{grid-column:1/-1}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface)}
+.seg button{min-height:44px;border:0;background:transparent;font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.section{display:flex;flex-direction:column;gap:10px}
+
+/* ai states */
+.thinking{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border:1px dashed var(--line);border-radius:var(--r);background:var(--surface)}
+.thinking span{display:flex;align-items:center;gap:10px;color:var(--ink-2)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+.err{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface)}
+.err p{color:var(--ink-2)}
+
+/* outfits */
+.outfit{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.outfit h3{font-family:var(--f-display);font-weight:500;font-size:22px;line-height:1.2}
+.strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.strip figure{margin:0;flex:0 0 86px;display:flex;flex-direction:column;gap:4px}
+.strip img{width:86px;height:106px;object-fit:cover;border-radius:6px;background:var(--surface-2);border:1px solid var(--line)}
+.strip figcaption{font-size:11.5px;line-height:1.25;color:var(--ink-2)}
+.tip{font-size:14px;color:var(--ink-2);border-left:2px solid var(--brass);padding-left:10px}
+.ol-label{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}
+
+/* check */
+.score{display:flex;align-items:baseline;gap:6px}
+.score b{font-family:var(--f-display);font-weight:600;font-size:56px;line-height:1;font-variant-numeric:tabular-nums}
+.score span{font-family:var(--f-mono);color:var(--ink-3)}
+.pts{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.swap{display:flex;gap:12px;align-items:center}
+.swap img{width:56px;height:70px;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);flex:none}
+.selfie{width:100%;max-height:380px;object-fit:contain;border-radius:var(--r);background:var(--surface-2);border:1px solid var(--line)}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:160px;border:1.5px dashed var(--line);border-radius:var(--r);background:var(--surface);color:var(--ink-2);text-align:center;padding:16px;width:100%}
+.drop svg{width:28px;height:28px;color:var(--accent)}
+
+/* shopping */
+.buy{display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.buy .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.buy h3{font-size:17px;font-weight:600}
+.pill{flex:none;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid currentColor}
+.pill.High{color:var(--bad)}.pill.Medium{color:var(--warn)}.pill.Low{color:var(--ink-3)}
+.unlock{font-family:var(--f-mono);font-size:12.5px;color:var(--accent)}
+.meter{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--surface-2)}
+.meter i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,14,12,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:560px;max-height:92%;overflow-y:auto;background:var(--bg);border-radius:16px 16px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow)}
+.sheet-h{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.sheet-h h2{font-family:var(--f-display);font-weight:500;font-size:24px}
+.x{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;flex:none}
+.x svg{width:18px;height:18px}
+.big{width:100%;max-height:420px;object-fit:contain;border-radius:var(--r);background:var(--surface-2)}
+.confirm{display:flex;flex-direction:column;gap:10px;border:1px solid var(--bad);border-radius:var(--r);padding:14px;background:var(--surface)}
+.status{font-size:14px;color:var(--ink-2);display:flex;align-items:center;gap:8px}
+
+/* tab bar */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs nav{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tabs button{min-height:var(--bar-h);border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--ink-3);font-size:12px;font-weight:500}
+.tabs button svg{width:24px;height:24px}
+.tabs button[aria-current="page"]{color:var(--accent)}
+.tabs button[aria-current="page"] span{font-weight:600}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--bar-h) + 16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;z-index:50;max-width:calc(100% - 32px)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Wardrobe<em>AI</em></div>
+    <div class="label" id="who">Office · KSA</div>
+  </header>
+  <main id="view"></main>
+</div>
+
+<div class="tabs">
+  <nav aria-label="Sections">
+    <button type="button" data-tab="closet" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5a2 2 0 1 1 2-2"/><path d="M12 7.5v1.2L3 15.5c-.8.6-.4 2 .7 2h16.6c1.1 0 1.5-1.4.7-2L12 8.7"/></svg>
+      <span>My Closet</span>
+    </button>
+    <button type="button" data-tab="today">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3 4 5.5 5.5 10 7 9.3V21h10V9.3l1.5.7L20 5.5 16 3c-.5 1.5-2 2.5-4 2.5S8.5 4.5 8 3Z"/></svg>
+      <span>Today</span>
+    </button>
+    <button type="button" data-tab="check">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="16" rx="6"/><path d="M9 21.5h6M12 18.5v3"/><path d="m9.5 10.5 1.8 1.8 3.4-3.6"/></svg>
+      <span>Check me</span>
+    </button>
+    <button type="button" data-tab="shop">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 13H6L5 8Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg>
+      <span>What to buy</span>
+    </button>
+  </nav>
+</div>
+
+<input type="file" id="add-file" accept="image/*" class="sr" tabindex="-1" aria-hidden="true">
+<input type="file" id="check-file" accept="image/*" class="sr" tabindex="-1" aria-hidden="true">
+<div id="sheet-root"></div>
+<div id="toast-root" aria-live="polite"></div>
+
+<script>
+(() => {
+"use strict";
+
+/* ---------- constants ---------- */
+const CATEGORIES = ["dress shirt","casual shirt","t-shirt","polo","trousers","chinos","jeans","suit","blazer","waistcoat","sweater","jacket/coat","tie","shalwar kameez","kurta","thobe","shoes","sandals/peshawari chappal","belt","watch","other"];
+const FORMALITY = ["formal","business","smart casual","casual"];
+const SEASONS = ["summer","winter","all year"];
+const GROUPS = [
+  ["All", null],
+  ["Shirts", ["dress shirt","casual shirt","t-shirt","polo","sweater"]],
+  ["Trousers", ["trousers","chinos","jeans"]],
+  ["Suits & Blazers", ["suit","blazer","waistcoat","jacket/coat"]],
+  ["Pakistani wear", ["shalwar kameez","kurta","thobe"]],
+  ["Shoes", ["shoes","sandals/peshawari chappal"]],
+  ["Accessories", ["tie","belt","watch","other"]],
+];
+const OCCASIONS = ["Office day","Client meeting","Presentation","Government office visit","Casual Thursday","Friday prayer / weekend","Dinner out","Pakistani wedding / event"];
+const WEATHER = ["Hot","Mild","Cool"];
+
+const STYLE_RULES = `Style knowledge (office life in Saudi Arabia, for a Pakistani professional):
+- Office days: well-fitted dress shirt with trousers or chinos, leather shoes, belt matching the shoes. Blazer or suit for client meetings, presentations and government office visits.
+- Saudi workplaces are conservative: modest, clean, well-pressed clothes; no shorts; no loud graphics at work.
+- Heat: prefer light colors and breathable fabrics (cotton, linen) most of the year. Wool suits and sweaters only for the short winter, cool weather or air-conditioned meetings.
+- Thursday is often relaxed: smart casual (polo or casual shirt with chinos) is fine unless there is a meeting.
+- Friday / weekend: shalwar kameez or kurta is a great choice, especially for Friday prayer and community gatherings; peshawari chappal or loafers.
+- Pakistani weddings / events: kurta or shalwar kameez with a waistcoat, or a suit.
+- Classic color rules: navy, grey, white and light blue are the safest office base; one accent at a time.`;
+
+/* ---------- example items (never saved) ---------- */
+function garmentSVG(kind, fill, detail){
+  const bg = "#E7EAE3";
+  const shapes = {
+    shirt:`<path d="M44 22 60 30 76 22 102 38 94 62 84 57 84 136 36 136 36 57 26 62 18 38Z" fill="${fill}" stroke="#0003"/><path d="M52 24 60 40 68 24M60 40v92" stroke="${detail}" stroke-width="2" fill="none"/>`,
+    blazer:`<path d="M44 20 60 28 76 20 104 36 98 134 22 134 16 36Z" fill="${fill}" stroke="#0003"/><path d="M50 22 60 76 70 22" fill="#F4F5F0"/><path d="M50 22 44 64 60 92 76 64 70 22" stroke="${detail}" stroke-width="2" fill="none"/>`,
+    trousers:`<path d="M36 18H84L92 136H66L60 62 54 136H28Z" fill="${fill}" stroke="#0003"/><path d="M36 28H84M60 28v30" stroke="${detail}" stroke-width="2"/>`,
+    kurta:`<path d="M46 16 60 22 74 16 96 30 90 56 82 52 88 140 32 140 38 52 30 56 24 30Z" fill="${fill}" stroke="#0003"/><path d="M60 22v34" stroke="${detail}" stroke-width="2"/><circle cx="60" cy="32" r="1.6" fill="${detail}"/><circle cx="60" cy="42" r="1.6" fill="${detail}"/>`,
+    shoes:`<path d="M14 100C14 84 26 80 40 82L58 86C72 89 96 94 104 106V114H14Z" fill="${fill}" stroke="#0003"/><path d="M14 108H104" stroke="${detail}" stroke-width="3"/><path d="M40 86l6 8M48 88l6 8" stroke="${detail}" stroke-width="1.5"/>`,
+    tie:`<path d="M54 18H66L70 30 64 36 72 120 60 136 48 120 56 36 50 30Z" fill="${fill}" stroke="#0003"/><path d="M52 60 68 52M50 84 70 74M50 106 70 96" stroke="${detail}" stroke-width="3"/>`
+  };
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150"><rect width="120" height="150" fill="${bg}"/>${shapes[kind]}</svg>`;
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+const EXAMPLES = [
+  {id:"ex1",src:garmentSVG("shirt","#FFFFFF","#C9CEC6"),category:"dress shirt",colorMain:"white",colorSecondary:null,formality:"business",season:"all year",fabric:"cotton",description:"Crisp white cotton dress shirt"},
+  {id:"ex2",src:garmentSVG("shirt","#BFD4EA","#8FA8C2"),category:"dress shirt",colorMain:"light blue",colorSecondary:null,formality:"business",season:"summer",fabric:"cotton",description:"Light blue slim-fit cotton dress shirt"},
+  {id:"ex3",src:garmentSVG("trousers","#2A3550","#1B2336"),category:"trousers",colorMain:"navy",colorSecondary:null,formality:"business",season:"all year",fabric:"polyester blend",description:"Navy flat-front office trousers"},
+  {id:"ex4",src:garmentSVG("trousers","#B9AE93","#9A8F74"),category:"chinos",colorMain:"beige",colorSecondary:null,formality:"smart casual",season:"summer",fabric:"cotton",description:"Beige cotton chinos"},
+  {id:"ex5",src:garmentSVG("blazer","#27324A","#11182A"),category:"blazer",colorMain:"navy",colorSecondary:null,formality:"formal",season:"all year",fabric:"wool",description:"Navy single-breasted blazer"},
+  {id:"ex6",src:garmentSVG("kurta","#F4F1E6","#CFC8B2"),category:"shalwar kameez",colorMain:"off-white",colorSecondary:null,formality:"smart casual",season:"summer",fabric:"cotton",description:"Off-white cotton shalwar kameez"},
+  {id:"ex7",src:garmentSVG("shoes","#1E1B1A","#4A4442"),category:"shoes",colorMain:"black",colorSecondary:null,formality:"formal",season:"all year",fabric:"leather",description:"Black leather oxford shoes"},
+  {id:"ex8",src:garmentSVG("tie","#5B1F2A","#C9A66B"),category:"tie",colorMain:"burgundy",colorSecondary:"gold stripe",formality:"formal",season:"all year",fabric:"silk",description:"Burgundy silk tie with thin gold stripe"},
+].map(x => ({...x, example:true, createdAt:0}));
+
+/* ---------- state ---------- */
+const S = {
+  tab: "closet",
+  ready: false,           // capabilities resolved
+  sample: null, imagesOk: false,
+  assets: null, db: null, user: null, uid: null,
+  items: [], itemsLoaded: false, dbError: null,
+  showExamples: true,
+  filter: "All",
+  today: {occasion:"Office day", weather:"Hot", note:"", status:"idle", result:null, error:null, ctl:null},
+  check: {file:null, url:null, occasion:null, status:"idle", result:null, error:null, ctl:null},
+  shop: {status:"idle", result:null, error:null, ctl:null},
+};
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
+const useCap = name => (window.claude && typeof window.claude.use === "function") ? window.claude.use(name).catch(() => null) : Promise.resolve(null);
+const photoSrc = it => it.example ? it.src : (it.photo ? "/_blob/" + encodeURIComponent(it.photo) : "");
+const PLACEHOLDER = garmentSVG("shirt","#D6DAD2","#C0C5BD");
+const imgTag = (it, cls="ph", alt) => `<img class="${cls}" src="${esc(photoSrc(it) || PLACEHOLDER)}" alt="${esc(alt ?? it.description ?? it.category)}" loading="lazy" onerror="this.onerror=null;this.src='${PLACEHOLDER}'">`;
+
+function closet(){
+  if (S.items.length) return {list:S.items, example:false};
+  if (S.showExamples) return {list:EXAMPLES, example:true};
+  return {list:[], example:false};
+}
+function findItem(id){ return closet().list.find(x => x.id === id); }
+function compact(list){
+  return list.map(i => ({id:i.id, cat:i.category, color:i.colorMain, color2:i.colorSecondary || undefined, formality:i.formality, season:i.season, fabric:i.fabric, desc:i.description}));
+}
+
+let toastTimer;
+function toast(msg){
+  const r = $("#toast-root");
+  r.innerHTML = `<div class="toast">${esc(msg)}</div>`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { r.innerHTML = ""; }, 2600);
+}
+
+async function downscale(file, max=1600, q=0.85){
+  const url = URL.createObjectURL(file);
+  try{
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error("decode")); i.src = url; });
+    const w = img.naturalWidth, h = img.naturalHeight;
+    const scale = Math.min(1, max / Math.max(w, h));
+    const c = document.createElement("canvas");
+    c.width = Math.round(w * scale); c.height = Math.round(h * scale);
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    return await new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error("encode")), "image/jpeg", q));
+  } finally { URL.revokeObjectURL(url); }
+}
+
+/* AI error copy. Returns {msg, retry:boolean, hide:boolean} */
+function aiErr(e){
+  const code = e && e.code;
+  switch(code){
+    case "not_granted": case "sampling_disabled": case "not_declared": case "capability_disabled": case "capability_removed":
+      return {msg:"AI is not available for this page. Allow Claude for this artifact, or check that your account can use it.", hide:true};
+    case "images_unavailable":
+      return {msg:"This view can't send photos to the AI.", hide:true};
+    case "rate_limited": return {msg:"The AI is busy right now. Try again in a moment.", retry:true};
+    case "invalid_json": return {msg:"The AI's answer came back garbled.", retry:true};
+    case "image_rejected": return {msg:"That photo couldn't be read. Pick another photo (JPEG or PNG works best).", retry:false};
+    case "session_expired": return {msg:"Your claude.ai session expired. Sign in again, then reload.", retry:false};
+    case "refused": return {msg:"The AI declined this request. Try a different photo or note.", retry:true};
+    case "prompt_too_large": return {msg:"Your closet is too big to send in one go.", retry:false};
+    case "cancelled": return {msg:"Stopped.", retry:true, quiet:true};
+    default: return {msg:"Something went wrong reaching the AI.", retry:true};
+  }
+}
+function markAiHidden(e){ if (aiErr(e).hide) { if (e.code === "images_unavailable") S.imagesOk = false; else { S.sample = null; S.imagesOk = false; } } }
+
+/* ---------- boot ---------- */
+async function boot(){
+  render();
+  const [sample, assets, db, user] = await Promise.all([useCap("sample"), useCap("assets"), useCap("db"), useCap("user")]);
+  S.sample = sample; S.assets = assets; S.db = db; S.user = user;
+  if (sample){ try { const l = await sample.limits(); S.imagesOk = !!(l && l.images); } catch { S.imagesOk = false; } }
+  if (user){ try { S.uid = await user.id(); } catch { S.uid = null; } }
+  S.ready = true;
+  if (db && S.uid){
+    try{
+      const col = db.doc("data/users/" + S.uid + "/profile").collection("items");
+      col.onSnapshot(snap => {
+        S.items = snap.docs.map(d => ({id:d.id, ...d.data()})).sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+        S.itemsLoaded = true;
+        render();
+      }, err => { S.dbError = err; S.itemsLoaded = true; render(); });
+    } catch(e){ S.dbError = e; S.itemsLoaded = true; }
+  } else {
+    S.itemsLoaded = true;
+  }
+  render();
+}
+
+/* ---------- render ---------- */
+function render(){
+  document.querySelectorAll(".tabs button").forEach(b => b.toggleAttribute("aria-current", false));
+  const cur = document.querySelector(`.tabs button[data-tab="${S.tab}"]`);
+  if (cur) cur.setAttribute("aria-current","page");
+  const v = $("#view");
+  v.innerHTML = ({closet:viewCloset, today:viewToday, check:viewCheck, shop:viewShop})[S.tab]();
+}
+
+function accessNotice(){
+  if (!S.ready) return `<div class="notice slim"><p>Opening your closet…</p></div>`;
+  if (!S.db) return `<div class="notice"><h2>Your closet can't load here</h2><p>Open this page on claude.ai, signed in, to save your clothes. You can still look around with the example items.</p></div>`;
+  if (!S.uid) return `<div class="notice"><h2>Sign in to use your closet</h2><p>Your wardrobe is private to your claude.ai account. Sign in to claude.ai and reopen this link. The example items below show how it works.</p></div>`;
+  if (S.dbError) return `<div class="notice"><h2>Your closet didn't load</h2><p>Reload the page to try again. If it keeps happening, ask the owner to share this page with you as a Contributor.</p></div>`;
+  return "";
+}
+
+function canAdd(){ return S.ready && S.db && S.uid && S.assets && !S.dbError; }
+
+function viewCloset(){
+  const notice = accessNotice();
+  const {list, example} = closet();
+  const grp = GROUPS.find(g => g[0] === S.filter)[1];
+  const shown = grp ? list.filter(i => grp.includes(i.category)) : list;
+  const n = S.items.length;
+  const addDisabled = !canAdd();
+  let addHint = "";
+  if (S.ready && S.db && S.uid && !S.assets) addHint = `<div class="notice slim"><p>Adding photos needs edit access to this page. Ask the owner to share it with you as an Editor.</p></div>`;
+
+  let body = "";
+  if (S.ready && S.itemsLoaded && n === 0 && !notice){
+    body += `<div class="notice">
+      <h2>Your closet is empty</h2>
+      <p>Photograph one garment at a time, flat or on a hanger. The AI fills in category, colors, formality, season and fabric. You check the tags and save.</p>
+      <div class="row"><button class="btn primary" data-act="add" ${addDisabled?"disabled":""}>${ICON_PLUS} Add your first item</button>
+      <button class="btn ghost" data-act="toggle-ex">${S.showExamples ? "Hide examples" : "Try with example items"}</button></div>
+    </div>`;
+  }
+  if (example){
+    body += `<div class="notice slim"><p><span class="label" style="color:var(--brass)">Example</span>&nbsp; Sample clothes to show how it works. They are not saved.</p>${n===0 && notice ? `<button class="link" data-act="toggle-ex">Hide</button>` : ""}</div>`;
+  }
+  if (list.length){
+    body += `<div class="chips" role="group" aria-label="Filter">${GROUPS.map(g => `<button class="chip" data-filter="${esc(g[0])}" aria-pressed="${g[0]===S.filter}">${esc(g[0])}</button>`).join("")}</div>`;
+    body += `<div class="bar"><span class="count">${example ? `${list.length} example items` : `${n} item${n===1?"":"s"}`}${grp ? ` · ${shown.length} shown` : ""}</span>
+      ${n>0 ? `<button class="btn primary" data-act="add" ${addDisabled?"disabled":""}>${ICON_PLUS} Add item</button>` : ""}</div>`;
+    body += shown.length ? `<div class="grid">${shown.map(cardHTML).join("")}</div>`
+      : `<div class="notice slim"><p>Nothing in ${esc(S.filter)} yet.</p></div>`;
+  }
+  return `<div class="page-h"><span class="label">Tab 1 · Wardrobe</span><h1>My Closet</h1></div>
+    <div class="stack">${notice}${addHint}${body}</div>`;
+}
+
+function cardHTML(it){
+  return `<button class="card" data-item="${esc(it.id)}">
+    ${it.example ? `<span class="tagx">Example</span>` : ""}
+    ${imgTag(it)}
+    <span class="meta"><span class="cat">${esc(it.category)}</span><span class="desc">${esc(it.description || cap(it.colorMain))}</span></span>
+  </button>`;
+}
+
+function aiUnavailable(what){
+  if (!S.ready) return `<div class="notice slim"><p>Connecting to Claude…</p></div>`;
+  return `<div class="notice"><h2>AI is off here</h2><p>${esc(what)} needs Claude. Open this page on claude.ai while signed in and allow it to use Claude when asked.</p></div>`;
+}
+
+function thinkingHTML(label){
+  return `<div class="thinking" role="status"><span><i class="dot"></i>${esc(label)}</span><button class="btn" data-act="stop">Stop</button></div>`;
+}
+function errHTML(e, retryAct){
+  const x = aiErr(e);
+  return `<div class="err" role="alert"><p>${esc(x.msg)}</p>${x.retry && retryAct ? `<div class="row"><button class="btn" data-act="${retryAct}">Try again</button></div>` : ""}</div>`;
+}
+
+/* Today */
+function viewToday(){
+  const T = S.today;
+  const {list, example} = closet();
+  let h = `<div class="page-h"><span class="label">Tab 2 · What should I wear?</span><h1>Today</h1><p>Outfits picked from your own clothes only.</p></div><div class="stack">`;
+  if (!S.sample) return h + aiUnavailable("Outfit suggestions") + `</div>`;
+  if (!list.length) return h + `<div class="notice"><h2>Add some clothes first</h2><p>Outfit ideas come from your closet. Add a few shirts, trousers and shoes, or turn on the example items.</p><div class="row"><button class="btn" data-act="go-closet">Go to My Closet</button></div></div></div>`;
+  if (example) h += `<div class="notice slim"><p><span class="label" style="color:var(--brass)">Example</span>&nbsp; Using the example items until you add your own.</p></div>`;
+  h += `<div class="section"><span class="label">Occasion</span><div class="chips wrap-ok" role="group" aria-label="Occasion">${OCCASIONS.map(o => `<button class="chip" data-occ="${esc(o)}" aria-pressed="${o===T.occasion}">${esc(o)}</button>`).join("")}</div></div>
+    <div class="section"><span class="label">Weather</span><div class="seg" role="group" aria-label="Weather">${WEATHER.map(w => `<button data-weather="${w}" aria-pressed="${w===T.weather}">${w}</button>`).join("")}</div></div>
+    <div class="field"><label for="today-note">Note (optional)</label><textarea id="today-note" placeholder="e.g. meeting with the CEO, long day and want comfort">${esc(T.note)}</textarea></div>
+    <button class="btn primary block" data-act="suggest" ${T.status==="loading"?"disabled":""}>Suggest outfits</button>`;
+  if (T.status === "loading") h += thinkingHTML(T.streaming ? "Putting outfits together…" : "Thinking…");
+  if (T.status === "error") h += errHTML(T.error, "suggest-again");
+  if (T.status === "done" && T.result) h += outfitsHTML(T.result);
+  return h + `</div>`;
+}
+function outfitsHTML(r){
+  let h = "";
+  r.outfits.forEach((o, i) => {
+    h += `<article class="outfit"><span class="ol-label">Outfit ${i+1} of ${r.outfits.length}</span><h3>${esc(o.name)}</h3>
+      <div class="strip">${o.items.map(it => `<figure>${imgTag(it,"")}<figcaption>${esc(it.description || it.category)}</figcaption></figure>`).join("")}</div>
+      <p>${esc(o.why)}</p>${o.tip ? `<p class="tip">${esc(o.tip)}</p>` : ""}</article>`;
+  });
+  if (r.missing){
+    h += `<div class="notice"><h2>${r.outfits.length ? "To round it out" : "Your closet is missing something"}</h2><p>${esc(r.missing)}</p><div class="row"><button class="btn" data-act="go-shop">See what to buy</button></div></div>`;
+  }
+  h += `<button class="btn block" data-act="suggest-again">Try again</button>`;
+  return h;
+}
+
+/* Check */
+function viewCheck(){
+  const C = S.check;
+  let h = `<div class="page-h"><span class="label">Tab 3 · Outfit check</span><h1>Check me</h1><p>A second opinion before you leave. The photo is not saved.</p></div><div class="stack">`;
+  if (!S.sample) return h + aiUnavailable("Outfit check") + `</div>`;
+  if (!S.imagesOk) return h + `<div class="notice"><h2>Photos aren't supported here</h2><p>This view of claude.ai can't send photos to the AI. Try the latest claude.ai in Safari or Chrome.</p></div></div>`;
+  h += C.url ? `<img class="selfie" src="${esc(C.url)}" alt="Your outfit photo"><div class="row"><button class="btn" data-act="pick-check">Choose another photo</button></div>`
+    : `<button class="drop" data-act="pick-check">${ICON_CAM}<strong>Add a photo of your outfit</strong><span>A mirror selfie is fine. Full length works best.</span></button>`;
+  h += `<div class="section"><span class="label">Occasion (optional)</span><div class="chips wrap-ok" role="group" aria-label="Occasion">${OCCASIONS.map(o => `<button class="chip" data-cocc="${esc(o)}" aria-pressed="${o===C.occasion}">${esc(o)}</button>`).join("")}</div></div>
+    <button class="btn primary block" data-act="check" ${(!C.file || C.status==="loading")?"disabled":""}>Check my outfit</button>`;
+  if (C.status === "loading") h += thinkingHTML(C.streaming ? "Writing notes…" : "Looking at your outfit…");
+  if (C.status === "error") h += errHTML(C.error, C.error && C.error.code === "image_rejected" ? null : "check");
+  if (C.status === "done" && C.result) h += checkHTML(C.result);
+  return h + `</div>`;
+}
+function checkHTML(r){
+  let h = `<article class="outfit"><div class="score"><b>${esc(r.score)}</b><span>/ 10${r.occasion ? " · " + esc(r.occasion) : ""}</span></div>${r.verdict ? `<p>${esc(r.verdict)}</p>` : ""}</article>`;
+  if (r.works.length) h += `<article class="outfit"><span class="ol-label">What works</span><ul class="pts">${r.works.map(x => `<li>${esc(x)}</li>`).join("")}</ul></article>`;
+  if (r.fix.length) h += `<article class="outfit"><span class="ol-label">What to fix</span><ul class="pts">${r.fix.map(x => `<li>${esc(x)}</li>`).join("")}</ul></article>`;
+  if (r.swaps.length) h += `<article class="outfit"><span class="ol-label">Swaps from your closet</span>${r.swaps.map(s => `<div class="swap">${s.item ? imgTag(s.item,"") : ""}<p>${esc(s.text)}</p></div>`).join("")}</article>`;
+  return h;
+}
+
+/* Shop */
+function viewShop(){
+  const P = S.shop;
+  const {list, example} = closet();
+  let h = `<div class="page-h"><span class="label">Tab 4 · Shopping</span><h1>What to buy</h1><p>The gaps in your closet, ranked by how many new outfits they unlock.</p></div><div class="stack">`;
+  if (list.length) h += healthMeter(list, example);
+  if (!S.sample) return h + aiUnavailable("Closet analysis") + `</div>`;
+  if (!list.length) return h + `<div class="notice"><h2>Nothing to analyse yet</h2><p>Add your clothes first, or turn on the example items.</p><div class="row"><button class="btn" data-act="go-closet">Go to My Closet</button></div></div></div>`;
+  h += `<button class="btn primary block" data-act="analyse" ${P.status==="loading"?"disabled":""}>${P.status==="done" ? "Analyse again" : "Analyse my closet"}</button>`;
+  if (P.status === "loading") h += thinkingHTML(P.streaming ? "Writing your list…" : "Thinking…");
+  if (P.status === "error") h += errHTML(P.error, "analyse");
+  if (P.status === "done" && P.result) h += shopHTML(P.result);
+  return h + `</div>`;
+}
+function healthMeter(list, example){
+  const counts = FORMALITY.map(f => list.filter(i => i.formality === f).length);
+  const total = counts.reduce((a,b) => a+b, 0) || 1;
+  const colors = ["var(--ink)","var(--accent)","var(--brass)","var(--ink-3)"];
+  return `<article class="outfit"><span class="ol-label">Closet health${example ? " · example items" : ""}</span>
+    <div class="meter" role="img" aria-label="Formality mix">${counts.map((c,i) => c ? `<i style="width:${(c/total*100).toFixed(1)}%;background:${colors[i]}"></i>` : "").join("")}</div>
+    <div class="legend">${FORMALITY.map((f,i) => `<span><i style="background:${colors[i]}"></i>${cap(f)} ${counts[i]}</span>`).join("")}</div>
+    ${S.shop.result && S.shop.result.health ? healthText(S.shop.result.health) : ""}</article>`;
+}
+function healthText(hh){
+  let h = "";
+  if (hh.summary) h += `<p>${esc(hh.summary)}</p>`;
+  if (hh.tooMuch && hh.tooMuch.length) h += `<p><span class="label">Plenty of</span>&nbsp; ${esc(hh.tooMuch.join(", "))}</p>`;
+  if (hh.missingBasics && hh.missingBasics.length) h += `<p><span class="label">Missing basics</span>&nbsp; ${esc(hh.missingBasics.join(", "))}</p>`;
+  return h;
+}
+function shopHTML(r){
+  return r.buys.map(b => `<article class="buy"><div class="hd"><h3>${esc(b.item)}</h3><span class="pill ${esc(b.priority)}">${esc(b.priority)}</span></div>
+    <p>${esc(b.why)}</p><span class="unlock">Unlocks about ${esc(b.unlocks)} new outfit${Number(b.unlocks)===1?"":"s"}</span></article>`).join("");
+}
+
+/* ---------- icons ---------- */
+const ICON_PLUS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`;
+const ICON_X = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`;
+const ICON_CAM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4Z"/><circle cx="12" cy="13" r="3.5"/></svg>`;
+
+/* ---------- sheet (modal) ---------- */
+let sheetState = null;
+function openSheet(state){ sheetState = state; renderSheet(); }
+function closeSheet(){
+  if (sheetState && sheetState.kind === "add") abandonAdd();
+  sheetState = null; $("#sheet-root").innerHTML = "";
+}
+function renderSheet(){
+  const root = $("#sheet-root");
+  if (!sheetState){ root.innerHTML = ""; return; }
+  const st = sheetState;
+  let inner = "";
+  if (st.kind === "item"){
+    const it = findItem(st.id);
+    if (!it){ closeSheet(); return; }
+    if (st.editing) inner = `<div class="sheet-h"><h2>Edit item</h2><button class="x" data-act="close" aria-label="Close">${ICON_X}</button></div>${imgTag(it,"big")}${tagForm(st.draft)}
+      <div class="row end"><button class="btn ghost" data-act="cancel-edit">Cancel</button><button class="btn primary" data-act="save-edit" ${st.busy?"disabled":""}>Save changes</button></div>`;
+    else inner = `<div class="sheet-h"><h2>${esc(cap(it.category))}</h2><button class="x" data-act="close" aria-label="Close">${ICON_X}</button></div>
+      ${it.example ? `<span class="label" style="color:var(--brass)">Example item · not saved</span>` : ""}
+      ${imgTag(it,"big")}
+      <p>${esc(it.description)}</p>
+      <dl class="ticket">
+        <dt>Category</dt><dd>${esc(it.category)}</dd>
+        <dt>Colour</dt><dd>${esc(it.colorMain)}${it.colorSecondary ? " · " + esc(it.colorSecondary) : ""}</dd>
+        <dt>Formality</dt><dd>${esc(it.formality)}</dd>
+        <dt>Season</dt><dd>${esc(it.season)}</dd>
+        <dt>Fabric</dt><dd>${esc(it.fabric || "—")}</dd>
+        ${it.createdAt ? `<dt>Added</dt><dd>${esc(new Date(it.createdAt).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}))}</dd>` : ""}
+      </dl>
+      ${it.example ? "" : st.confirmDelete ? `<div class="confirm" role="alert"><p><strong>Delete this item?</strong> The photo is removed too. This can't be undone.</p>
+          <div class="row end"><button class="btn ghost" data-act="cancel-del">Keep it</button><button class="btn danger" data-act="do-del" ${st.busy?"disabled":""}>Delete</button></div></div>`
+        : `<div class="row end"><button class="btn" data-act="ask-del">Delete</button><button class="btn primary" data-act="edit">Edit tags</button></div>`}`;
+  } else if (st.kind === "add"){
+    inner = `<div class="sheet-h"><h2>New item</h2><button class="x" data-act="close" aria-label="Close">${ICON_X}</button></div>
+      <img class="big" src="${esc(st.preview)}" alt="The garment you picked">
+      <div class="status" role="status">${st.status}</div>
+      ${st.tagErr ? `<div class="err"><p>${esc(st.tagErr)}</p></div>` : ""}
+      ${tagForm(st.draft)}
+      <div class="row end"><button class="btn ghost" data-act="close">Cancel</button><button class="btn primary" data-act="save-add" ${(!st.assetId || st.busy || st.tagging)?"disabled":""}>Save</button></div>`;
+  }
+  root.innerHTML = `<div class="scrim" data-act="scrim"><div class="sheet" role="dialog" aria-modal="true">${inner}</div></div>`;
+}
+function tagForm(d){
+  const opt = (arr, v) => arr.map(x => `<option value="${esc(x)}" ${x===v?"selected":""}>${esc(cap(x))}</option>`).join("");
+  return `<div class="fgrid" id="tagform">
+    <div class="field full"><label for="f-desc">Description</label><input id="f-desc" name="description" value="${esc(d.description)}" placeholder="Light blue slim-fit cotton dress shirt"></div>
+    <div class="field"><label for="f-cat">Category</label><select id="f-cat" name="category">${opt(CATEGORIES, d.category)}</select></div>
+    <div class="field"><label for="f-form">Formality</label><select id="f-form" name="formality">${opt(FORMALITY, d.formality)}</select></div>
+    <div class="field"><label for="f-c1">Main colour</label><input id="f-c1" name="colorMain" value="${esc(d.colorMain)}" placeholder="navy"></div>
+    <div class="field"><label for="f-c2">Second colour</label><input id="f-c2" name="colorSecondary" value="${esc(d.colorSecondary || "")}" placeholder="none"></div>
+    <div class="field"><label for="f-season">Season</label><select id="f-season" name="season">${opt(SEASONS, d.season)}</select></div>
+    <div class="field"><label for="f-fab">Fabric</label><input id="f-fab" name="fabric" value="${esc(d.fabric)}" placeholder="cotton"></div>
+  </div>`;
+}
+function readForm(){
+  const f = $("#tagform"); const g = n => f.querySelector(`[name="${n}"]`).value.trim();
+  return {description:g("description"), category:g("category"), formality:g("formality"), colorMain:g("colorMain"), colorSecondary:g("colorSecondary") || null, season:g("season"), fabric:g("fabric")};
+}
+function syncDraft(){ if (sheetState && sheetState.draft && $("#tagform")) sheetState.draft = {...sheetState.draft, ...readForm()}; }
+
+/* ---------- add flow ---------- */
+const EMPTY_TAGS = {category:"dress shirt", colorMain:"", colorSecondary:null, formality:"business", season:"all year", fabric:"", description:""};
+
+async function startAdd(file){
+  if (!file) return;
+  const preview = URL.createObjectURL(file);
+  const st = {kind:"add", preview, draft:{...EMPTY_TAGS}, status:"Preparing photo…", assetId:null, busy:false, tagging:false, ctl:new AbortController(), token:Symbol()};
+  openSheet(st);
+  let blob;
+  try { blob = await downscale(file); }
+  catch { if (sheetState === st){ st.status = "This photo couldn't be opened. Try a JPEG or PNG."; renderSheet(); } return; }
+  if (sheetState !== st) return;
+  st.status = "Uploading photo…"; renderSheet();
+
+  const up = S.assets.upload(blob, {type:"image/jpeg"}).then(r => {
+    if (sheetState !== st){ S.assets.delete(r.id).catch(()=>{}); return; }
+    st.assetId = r.id;
+  }).catch(e => {
+    if (sheetState === st){ st.uploadErr = e && e.code === "quota_or_state" ? "Storage for this page is full. Delete some items and try again." : "The photo didn't upload. Close and try again."; }
+  });
+
+  let tags = null;
+  if (S.sample && S.imagesOk){
+    st.tagging = true;
+    const t = S.sample.json(tagPrompt(), {images: blob, modelTier:"quick", signal: st.ctl.signal}).then(r => { tags = r; }).catch(e => {
+      markAiHidden(e);
+      if (e.code !== "cancelled") st.tagErr = e.code === "image_rejected" ? "The AI couldn't read this photo. Fill in the tags yourself, or cancel and pick another photo." : "The AI couldn't tag this one. Fill in the tags yourself.";
+    });
+    const progress = () => { if (sheetState === st){ syncDraft(); st.status = st.assetId ? "Photo saved. Reading the garment…" : "Uploading photo and reading the garment…"; renderSheet(); } };
+    up.then(progress);
+    progress();
+    await Promise.all([up, t]);
+    st.tagging = false;
+  } else {
+    st.tagErr = S.sample ? "Auto-tagging needs photo support, which this view doesn't have. Fill in the tags yourself." : "AI is off, so fill in the tags yourself.";
+    await up;
+  }
+  if (sheetState !== st) return;
+  syncDraft();
+  if (tags) st.draft = {...st.draft, ...cleanTags(tags)};
+  st.status = st.uploadErr ? esc(st.uploadErr) : "Check the tags, then save.";
+  renderSheet();
+}
+function tagPrompt(){
+  return `You are tagging one garment photo for a personal wardrobe app. The photo shows ONE clothing item or accessory (possibly on a hanger, flat, or worn).
+Reply with only one JSON object, no other text:
+{"category": one of ${JSON.stringify(CATEGORIES)},
+ "colorMain": plain English color, e.g. "white", "navy", "light grey", "red and white check",
+ "colorSecondary": plain English secondary color or null,
+ "formality": one of ${JSON.stringify(FORMALITY)},
+ "season": one of ${JSON.stringify(SEASONS)} (Saudi climate: very hot most of the year, short mild winter; linen/light cotton = "summer", heavy wool/knit = "winter"),
+ "fabric": best guess, e.g. "cotton", "linen", "wool", "polyester blend", "leather",
+ "description": one short line, e.g. "Light blue slim-fit cotton dress shirt"}
+Notes: a long tunic with loose trousers is "shalwar kameez"; a long tunic alone is "kurta"; an ankle-length Arab robe is "thobe"; a two-piece matching jacket and trousers is "suit".`;
+}
+function cleanTags(t){
+  const pick = (v, arr, d) => { v = String(v || "").toLowerCase().trim(); return arr.includes(v) ? v : d; };
+  const str = (v, n=80) => (v == null || v === "null") ? "" : String(v).trim().slice(0, n);
+  return {
+    category: pick(t.category, CATEGORIES, "other"),
+    colorMain: str(t.colorMain, 40),
+    colorSecondary: str(t.colorSecondary, 40) || null,
+    formality: pick(t.formality, FORMALITY, "business"),
+    season: pick(t.season, SEASONS, "all year"),
+    fabric: str(t.fabric, 40),
+    description: str(t.description, 120),
+  };
+}
+function abandonAdd(){
+  const st = sheetState;
+  st.ctl.abort();
+  URL.revokeObjectURL(st.preview);
+  if (st.assetId && !st.saved) S.assets.delete(st.assetId).catch(() => {});
+}
+async function saveAdd(){
+  const st = sheetState; if (!st || !st.assetId) return;
+  const d = readForm();
+  if (!d.description) d.description = [cap(d.colorMain), d.category].filter(Boolean).join(" ");
+  st.busy = true; st.draft = d; renderSheet();
+  try{
+    await S.db.doc("data/users/" + S.uid + "/profile").collection("items").doc().set({photo: st.assetId, ...d, createdAt: Date.now()});
+    st.saved = true;
+    URL.revokeObjectURL(st.preview);
+    sheetState = null; renderSheet();
+    S.filter = "All";
+    toast("Saved to your closet");
+  } catch(e){
+    st.busy = false; st.status = e && e.code === "quota_exceeded" ? "Your closet is full. Delete some items to add more." : "Couldn't save. Check your connection and try again."; renderSheet();
+  }
+}
+
+/* ---------- edit / delete ---------- */
+async function saveEdit(){
+  const st = sheetState; const d = readForm();
+  st.busy = true; renderSheet();
+  try{
+    await S.db.doc("data/users/" + S.uid + "/profile").collection("items").doc(st.id).update(d);
+    st.editing = false; st.busy = false; renderSheet(); toast("Changes saved");
+  } catch { st.busy = false; renderSheet(); toast("Couldn't save changes. Try again."); }
+}
+async function doDelete(){
+  const st = sheetState; const it = findItem(st.id); if (!it) return;
+  st.busy = true; renderSheet();
+  try{
+    await S.db.doc("data/users/" + S.uid + "/profile").collection("items").doc(it.id).delete();
+    if (it.photo && S.assets) S.assets.delete(it.photo).catch(() => {});
+    sheetState = null; renderSheet(); toast("Item deleted");
+  } catch { st.busy = false; renderSheet(); toast("Couldn't delete. Try again."); }
+}
+
+/* ---------- AI: Today ---------- */
+async function suggest(noCache){
+  const T = S.today;
+  const {list} = closet();
+  T.note = ($("#today-note")?.value || "").slice(0, 300);
+  T.ctl?.abort();
+  const ctl = T.ctl = new AbortController();
+  T.status = "loading"; T.streaming = false; T.error = null; render();
+  const prompt = `You are a personal stylist choosing office and life outfits for a Pakistani professional working in Saudi Arabia. Reply in English.
+${STYLE_RULES}
+
+Occasion: ${T.occasion}
+Weather: ${T.weather}
+Note from the user: ${T.note ? JSON.stringify(T.note) : "none"}
+
+The user's closet (the ONLY items you may use; refer to them by "id"):
+${JSON.stringify(compact(list))}
+
+Build 2-3 complete, different outfits for this occasion using only these ids. A complete outfit covers top, bottom (unless a one-piece like shalwar kameez, kurta with its own trousers, or thobe) and footwear when the closet has any; add blazer, tie, belt, waistcoat or watch where they help. Never invent items. If the closet cannot make a complete outfit for this occasion, return fewer (or zero) outfits and say plainly in "missing" which item types are missing.
+Reply with only this JSON:
+{"outfits":[{"name":"short evocative name, e.g. Classic navy Monday","items":["<id>","<id>"],"why":"1-2 sentences: color harmony, formality match, weather","tip":"one practical styling tip, or empty string"}],"missing":"what is missing, or null"}`;
+  try{
+    const r = await S.sample.json(prompt, {signal: ctl.signal, cache: noCache ? false : undefined, onText: () => { if (!T.streaming){ T.streaming = true; if (S.tab==="today") render(); } }});
+    if (ctl !== T.ctl) return;
+    const outfits = (Array.isArray(r?.outfits) ? r.outfits : []).map(o => ({
+      name: String(o.name || "Outfit"), why: String(o.why || ""), tip: o.tip ? String(o.tip) : "",
+      items: [...new Set(Array.isArray(o.items) ? o.items.map(String) : [])].map(findItem).filter(Boolean),
+    })).filter(o => o.items.length >= 2).slice(0, 3);
+    const missing = r && r.missing && r.missing !== "null" ? String(r.missing) : (outfits.length ? null : "Your closet couldn't make a complete outfit for this occasion. Add more items, or see what to buy.");
+    T.result = {outfits, missing}; T.status = "done";
+  } catch(e){
+    if (ctl !== T.ctl) return;
+    markAiHidden(e);
+    T.error = e; T.status = e.code === "cancelled" ? "idle" : "error";
+  }
+  if (S.tab === "today") render();
+}
+
+/* ---------- AI: Check ---------- */
+async function checkOutfit(){
+  const C = S.check; if (!C.file) return;
+  C.ctl?.abort();
+  const ctl = C.ctl = new AbortController();
+  C.status = "loading"; C.streaming = false; C.error = null; render();
+  const {list} = closet();
+  let blob;
+  try { blob = await downscale(C.file, 1600, 0.85); } catch { C.status = "error"; C.error = {code:"image_rejected"}; render(); return; }
+  const prompt = `You are a frank but kind personal stylist. The photo shows the user wearing today's outfit (it may be a mirror selfie). The user is a Pakistani professional working in Saudi Arabia. Reply in English.
+${STYLE_RULES}
+
+Occasion: ${C.occasion || "not given; judge it as a normal office day"}
+The user's closet (for swap suggestions; refer to items by "id"):
+${JSON.stringify(compact(list))}
+
+Judge fit, color harmony, wrinkles, grooming of the clothes, and formality for the occasion. Suggest swaps ONLY using ids from the closet above, and only if a swap clearly improves the outfit.
+Reply with only this JSON:
+{"score": integer 1-10,"verdict":"one sentence overall","works":["2-3 short points"],"fix":["2-3 short points"],"swaps":[{"itemId":"<id from the closet>","text":"e.g. Swap the brown shoes for your black leather oxfords"}]}`;
+  try{
+    const r = await S.sample.json(prompt, {images: blob, signal: ctl.signal, cache:false, onText: () => { if (!C.streaming){ C.streaming = true; if (S.tab==="check") render(); } }});
+    if (ctl !== C.ctl) return;
+    const arr = v => (Array.isArray(v) ? v : []).map(String).filter(Boolean).slice(0, 3);
+    const score = Math.max(1, Math.min(10, Math.round(Number(r?.score) || 0))) || "–";
+    const swaps = (Array.isArray(r?.swaps) ? r.swaps : []).map(s => ({text:String(s.text || ""), item: findItem(String(s.itemId || ""))})).filter(s => s.text && s.item).slice(0, 3);
+    C.result = {score, verdict: r?.verdict ? String(r.verdict) : "", works: arr(r?.works), fix: arr(r?.fix), swaps, occasion: C.occasion};
+    C.status = "done";
+  } catch(e){
+    if (ctl !== C.ctl) return;
+    markAiHidden(e);
+    C.error = e; C.status = e.code === "cancelled" ? "idle" : "error";
+  }
+  if (S.tab === "check") render();
+}
+
+/* ---------- AI: Shop ---------- */
+async function analyse(){
+  const P = S.shop;
+  const {list} = closet();
+  P.ctl?.abort();
+  const ctl = P.ctl = new AbortController();
+  const again = P.status === "done" || P.status === "error";
+  P.status = "loading"; P.streaming = false; P.error = null; render();
+  const prompt = `You are a personal stylist reviewing the wardrobe of a Pakistani professional working in an office in Saudi Arabia. They wear western business clothes to work and Pakistani clothes (shalwar kameez, kurta, waistcoat) on Fridays, weekends and at community events. Reply in English.
+${STYLE_RULES}
+
+Their closet (tags only):
+${JSON.stringify(compact(list))}
+
+Find the top 3-5 things to buy that fill the biggest gaps. For each, estimate how many NEW complete outfits it unlocks with what they already own (an integer). Also write a short closet health summary.
+Reply with only this JSON:
+{"buys":[{"item":"e.g. A plain white dress shirt","why":"the gap it fills, 1-2 sentences","unlocks":integer,"priority":"High"|"Medium"|"Low"}],
+ "health":{"summary":"2-3 sentences on formal vs casual balance and overall shape","tooMuch":["colors or item types they have too much of"],"missingBasics":["missing basics"]}}`;
+  try{
+    const r = await S.sample.json(prompt, {signal: ctl.signal, cache: again ? false : undefined, onText: () => { if (!P.streaming){ P.streaming = true; if (S.tab==="shop") render(); } }});
+    if (ctl !== P.ctl) return;
+    const pr = v => ["High","Medium","Low"].includes(v) ? v : "Medium";
+    const buys = (Array.isArray(r?.buys) ? r.buys : []).map(b => ({item:String(b.item || ""), why:String(b.why || ""), unlocks: Math.max(0, Math.round(Number(b.unlocks) || 0)), priority: pr(String(b.priority || ""))})).filter(b => b.item).slice(0, 5);
+    const order = {High:0, Medium:1, Low:2};
+    buys.sort((a,b) => order[a.priority] - order[b.priority] || b.unlocks - a.unlocks);
+    const h = r?.health || {};
+    const sa = v => (Array.isArray(v) ? v : []).map(String).filter(Boolean).slice(0, 6);
+    P.result = {buys, health:{summary: h.summary ? String(h.summary) : "", tooMuch: sa(h.tooMuch), missingBasics: sa(h.missingBasics)}};
+    P.status = "done";
+  } catch(e){
+    if (ctl !== P.ctl) return;
+    markAiHidden(e);
+    P.error = e; P.status = e.code === "cancelled" ? "idle" : "error";
+  }
+  if (S.tab === "shop") render();
+}
+
+/* ---------- events ---------- */
+document.querySelector(".tabs").addEventListener("click", e => {
+  const b = e.target.closest("[data-tab]"); if (!b) return;
+  if (S.tab === "today") S.today.note = ($("#today-note")?.value || S.today.note);
+  S.tab = b.dataset.tab; render(); window.scrollTo(0, 0);
+});
+
+$("#view").addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.filter){ S.filter = t.dataset.filter; render(); return; }
+  if (t.dataset.item){ openSheet({kind:"item", id:t.dataset.item}); return; }
+  if (t.dataset.occ){ S.today.note = $("#today-note")?.value || ""; S.today.occasion = t.dataset.occ; render(); return; }
+  if (t.dataset.weather){ S.today.note = $("#today-note")?.value || ""; S.today.weather = t.dataset.weather; render(); return; }
+  if (t.dataset.cocc){ S.check.occasion = S.check.occasion === t.dataset.cocc ? null : t.dataset.cocc; render(); return; }
+  switch(t.dataset.act){
+    case "add": if (canAdd()) $("#add-file").click(); break;
+    case "toggle-ex": S.showExamples = !S.showExamples; render(); break;
+    case "suggest": suggest(false); break;
+    case "suggest-again": suggest(true); break;
+    case "stop": [S.today, S.check, S.shop].forEach(x => x.ctl?.abort()); break;
+    case "pick-check": $("#check-file").click(); break;
+    case "check": checkOutfit(); break;
+    case "analyse": analyse(); break;
+    case "go-shop": S.tab = "shop"; render(); window.scrollTo(0,0); break;
+    case "go-closet": S.tab = "closet"; render(); window.scrollTo(0,0); break;
+  }
+});
+
+$("#sheet-root").addEventListener("click", e => {
+  if (e.target.dataset.act === "scrim"){ closeSheet(); return; }
+  const t = e.target.closest("button"); if (!t) return;
+  const st = sheetState;
+  switch(t.dataset.act){
+    case "close": closeSheet(); break;
+    case "edit": { const it = findItem(st.id); st.editing = true; st.draft = {...EMPTY_TAGS, ...it}; renderSheet(); break; }
+    case "cancel-edit": st.editing = false; renderSheet(); break;
+    case "save-edit": saveEdit(); break;
+    case "ask-del": st.confirmDelete = true; renderSheet(); break;
+    case "cancel-del": st.confirmDelete = false; renderSheet(); break;
+    case "do-del": doDelete(); break;
+    case "save-add": saveAdd(); break;
+  }
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape" && sheetState) closeSheet(); });
+
+$("#add-file").addEventListener("change", e => { const f = e.target.files[0]; e.target.value = ""; startAdd(f); });
+$("#check-file").addEventListener("change", e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  const C = S.check;
+  if (C.url) URL.revokeObjectURL(C.url);
+  C.ctl?.abort();
+  C.file = f; C.url = URL.createObjectURL(f); C.status = "idle"; C.result = null; C.error = null;
+  render();
+});
+
+boot();
+})();
+</script>
